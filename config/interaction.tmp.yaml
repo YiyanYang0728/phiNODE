@@ -1,0 +1,7 @@
+data:
+  test_X: #INFILE#
+output_prefix: #PREFIX#
+model:
+  path: #BESTMODEL#
+  output_dim: #OUTDIM#
+  batch_size: 512

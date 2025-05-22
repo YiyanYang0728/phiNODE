@@ -123,16 +123,20 @@ def train_model(train_X_data, train_Y_data, val_X_data, val_Y_data, device,
         # Early stopping
         if val_loss < best_val_loss:
             best_val_loss = val_loss
+            torch.save(model.state_dict(), model_path)
             counter = 0
+            logging.info(f'New best model saved with val loss: {best_val_loss:.6f}')
         else:
             counter += 1
-            # if counter >= patience:
             if early_stopping(val_loss):
                 print(f'Early stopping triggered after {epoch + 1} epochs. The best validation_loss is {best_val_loss}', flush=True)
                 logging.info(f'Early stopping triggered after {epoch + 1} epochs. The best validation_loss is {best_val_loss}')
-                torch.save(model.state_dict(), model_path)
-                return val_loss
-    
-    logging.info(f'No early stop is conducted. Save the model after {num_epochs} epochs')
-    torch.save(model.state_dict(), model_path)
+                break
+
+    if counter < patience:
+        print(f'Training complete ({num_epochs} epochs). '
+                     f'Best val loss: {best_val_loss:.6f}', flush=True)
+        logging.info(f'Training complete ({num_epochs} epochs). '
+                     f'Best val loss: {best_val_loss:.6f}')
+        
     return val_loss

@@ -34,10 +34,10 @@ def objective(trial, train_X_data, train_Y_data, val_X_data, val_Y_data, batch_s
     weight_decay = trial.suggest_float("weight_decay", 1e-8, 1e-5, log=True)
 
     # Ensure the directory exists
-    os.makedirs("phiNODE_models", exist_ok=True)
+    os.makedirs("checkpoints", exist_ok=True)
 
-    model_path = os.path.join("phiNODE_models", f"model_trial_{trial.number}.pth")  # Save models in a folder named 'models'
-    log_path = os.path.join("phiNODE_models", f"train_{trial.number}.log")
+    model_path = os.path.join("checkpoints", f"model_trial_{trial.number}.pth")  # Save models in a folder named 'models'
+    log_path = os.path.join("checkpoints", f"train_{trial.number}.log")
 
     # Call the train function and get the validation loss
     best_val_loss = train_model(

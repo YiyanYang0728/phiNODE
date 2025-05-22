@@ -2,23 +2,21 @@ import yaml
 import numpy as np
 import pandas as pd
 import torch
-import sys, os
+import sys, os, argparse
 from preprocess import data_preprocess
 from trainer import train_model
 from optimize import objective
 import optuna
 import shutil
 
-"""
-Usage: python main.py ${wd1}/Phage_train.tsv ${wd1}/Bact_arc_train.tsv ${wd1}/Phage_val.tsv ${wd1}/Bact_arc_val.tsv MGX_phage2bact_arc_masked_1e-5_0928_best_model
-"""
+
 def load_config(config_path):
     with open(config_path, 'r') as file:
         return yaml.safe_load(file)
     
-def main():
+def main(args):
     # Load configuration
-    config = load_config(sys.argv[1])
+    config = load_config(args.config)
 
     # Load data
     train_X_data = pd.read_table(config['data']['train_X'], header=None)  # Shape: (samples, bacterial_features)
@@ -30,6 +28,7 @@ def main():
     batch_size = config['model']['batch_size']
     patience = config['model']['patience']
     num_epochs = config['model']['num_epochs']
+    n_trials = config['model']['n_trials']
     
     # Load target model path and parameter path
     saved_model_path = config['model']['path']
@@ -39,12 +38,12 @@ def main():
     if torch.cuda.is_available():
         device = torch.device(0)  # Use GPU 0
     else:
-        device = torch.device('cpu')     # Fallback to CPU
+        device = torch.device('cpu') # Fallback to CPU
     print(f'Using device: {device}')
 
     # Create an Optuna study and optimize
     study = optuna.create_study(direction="minimize")
-    study.optimize(lambda trial: objective(trial, train_X_data, train_Y_data, val_X_data, val_Y_data, batch_size, patience, num_epochs, device), n_trials=10)
+    study.optimize(lambda trial: objective(trial, train_X_data, train_Y_data, val_X_data, val_Y_data, batch_size, patience, num_epochs, device), n_trials=n_trials)
 
     # Print the best parameters, score, and model name
     print("Best Parameters:", study.best_params)
@@ -53,6 +52,7 @@ def main():
     
     ori_model_path = study.best_trial.user_attrs["model_path"]
     # os.rename(ori_model_path, saved_model_path)
+    os.makedirs(os.path.dirname(saved_model_path), exist_ok=True)
     shutil.copy2(ori_model_path, saved_model_path)
 
     # Save best parameters and model name to a YAML file
@@ -65,4 +65,8 @@ def main():
         yaml.dump(best_params, f, default_flow_style=False)
     
 if __name__ == '__main__':
-    main()
+    parser = argparse.ArgumentParser(description='phiNODE')
+    parser.add_argument('-c', '--config', required=True, type=str,
+                        help='config file path')
+    args = parser.parse_args()
+    main(args)

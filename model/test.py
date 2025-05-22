@@ -1,25 +1,25 @@
 import torch
-import sys, yaml
+import sys, yaml, argparse
 import pandas as pd
 from torch.utils.data import DataLoader
 
 from data_loader import MGX_MVX_Dataset
 from model import MLP_NODE
-from utils import spearman_corr_list, pearson_corr_list, bc_sim_list, cos_sim_list, r2score_list
+from utils import ft_pearson_corr_list, ft_cos_sim_list, ft_r2score_list, pearson_corr_list, cos_sim_list, r2score_list
 
 # Device configuration
 if torch.cuda.is_available():
     device = torch.device(0)  # Use GPU 0
 else:
-    device = torch.device('cpu')     # Fallback to CPU
+    device = torch.device('cpu') # Fallback to CPU
 
 def load_config(config_path):
     with open(config_path, 'r') as file:
         return yaml.safe_load(file)
     
-def main():
+def main(args):
     # Load configuration
-    config = load_config(sys.argv[1])
+    config = load_config(args.config)
 
     # read data
     test_X_data = pd.read_table(config['data']['test_X'], header=None)
@@ -30,6 +30,7 @@ def main():
     # define hyperparameters (must be the same as during training)
     input_dim = test_X_data.shape[1]  # Should match training input_dim
     output_dim = test_Y_data.shape[1]  # Use the output_dim from training
+    
     batch_size=config['model']['batch_size']
     hidden_size=config['model']['hidden_size']
 
@@ -55,7 +56,7 @@ def main():
             pred = pred.to(device)
             preds = torch.cat((preds, pred), 0)
             grounds = torch.cat((grounds, Y_batch), 0)
-            torch.cuda.empty_cache()
+            torch.cuda.empty_cache()            
             
     prediction = preds
     ground_truth = grounds
@@ -65,17 +66,23 @@ def main():
     dt = pd.DataFrame(prediction.cpu().numpy())
     dt.to_csv(prefix+"_pred.tsv", sep="\t", header=False, index=False)
 
-    bc_sim_lst = bc_sim_list(prediction, ground_truth)
-    bc_sim_dt = pd.DataFrame(bc_sim_lst.cpu().numpy())
-    bc_sim_dt.to_csv(prefix+"_bc_sim.tsv", sep="\t", header=["Bray_Curtis_Sim"], index=False)
+    # feature-wise metrics
+    pcc_lst = ft_pearson_corr_list(prediction, ground_truth)
+    pcc_dt = pd.DataFrame(pcc_lst)
+    pcc_dt.to_csv(prefix+"_pcc_ft.tsv", sep="\t", header=["PCC"], index=False)
 
+    cos_lst = ft_cos_sim_list(prediction, ground_truth)
+    cos_dt = pd.DataFrame(cos_lst.cpu().numpy())
+    cos_dt.to_csv(prefix+"_cos_sim_ft.tsv", sep="\t", header=["Cos_Sim"], index=False)
+
+    r2_lst = ft_r2score_list(prediction, ground_truth)
+    r2_dt = pd.DataFrame(r2_lst)
+    r2_dt.to_csv(prefix+"_r2_ft.tsv", sep="\t", header=["R2"], index=False)
+
+    # sample-wise metrics
     pcc_lst = pearson_corr_list(prediction, ground_truth)
     pcc_dt = pd.DataFrame(pcc_lst)
     pcc_dt.to_csv(prefix+"_pcc.tsv", sep="\t", header=["PCC"], index=False)
-
-    scc_lst = spearman_corr_list(prediction, ground_truth)
-    scc_dt = pd.DataFrame(scc_lst.cpu().numpy())
-    scc_dt.to_csv(prefix+"_scc.tsv", sep="\t", header=["SCC"], index=False)
 
     cos_lst = cos_sim_list(prediction, ground_truth)
     cos_dt = pd.DataFrame(cos_lst.cpu().numpy())
@@ -86,4 +93,8 @@ def main():
     r2_dt.to_csv(prefix+"_r2.tsv", sep="\t", header=["R2"], index=False)
 
 if __name__ == '__main__':
-    main()
+    parser = argparse.ArgumentParser(description='phiNODE')
+    parser.add_argument('-c', '--config', required=True, type=str,
+                        help='config file path')
+    args = parser.parse_args()
+    main(args)

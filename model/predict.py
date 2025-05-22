@@ -1,5 +1,5 @@
 import torch
-import sys, yaml
+import sys, yaml, argparse
 import pandas as pd
 from torch.utils.data import DataLoader
 
@@ -10,16 +10,15 @@ from model import MLP_NODE
 if torch.cuda.is_available():
     device = torch.device(0)  # Use GPU 0
 else:
-    device = torch.device('cpu')     # Fallback to CPU
-print(f'Using device: {device}')
-
+    device = torch.device('cpu') # Fallback to CPU
+    
 def load_config(config_path):
     with open(config_path, 'r') as file:
         return yaml.safe_load(file)
     
-def main():
+def main(args):
     # Load configuration
-    config = load_config(sys.argv[1])
+    config = load_config(args.config)
 
     # read data
     test_X_data = pd.read_table(config['data']['test_X'], header=None)
@@ -62,4 +61,8 @@ def main():
     dt.to_csv(prefix+"_pred.tsv", sep="\t", header=False, index=False)
 
 if __name__ == '__main__':
-    main()
+    parser = argparse.ArgumentParser(description='phiNODE')
+    parser.add_argument('-c', '--config', required=True, type=str,
+                        help='config file path')
+    args = parser.parse_args()
+    main(args)

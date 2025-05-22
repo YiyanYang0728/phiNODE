@@ -1,0 +1,10 @@
+data:
+  test_X: data/Phage_test.tsv
+output_prefix: results/phiNODE_test
+model:
+  path: results/phiNODE_best_model.pth
+  output_dim: 100
+  batch_size: 512
+  hidden_size: 256
+  learning_rate: 7.903461278505191e-05
+  weight_decay: 1.8564932918088837e-06

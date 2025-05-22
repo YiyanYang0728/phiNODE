@@ -1,0 +1,7 @@
+data:
+  test_X: data/Phage_train.tsv
+output_prefix: results/phiNODE_train
+model:
+  path: results/phiNODE_best_model.pth
+  output_dim: #OUTDIM#
+  batch_size: 512

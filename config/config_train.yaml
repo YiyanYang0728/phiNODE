@@ -4,8 +4,9 @@ data:
   val_X: data/Phage_val.tsv
   val_Y: data/Bact_arc_val.tsv
 model:
-  batch_size: 512
-  patience: 20
-  num_epochs: 50000
-  path: results/mlp_node_best_model.pth
-  para_path: results/mlp_node_best_params.yaml
+  batch_size: 512 # Batch size
+  patience: 20 # Number of epochs with no improvement after which training will be stopped
+  num_epochs: 50000 # Maximal epochs for training
+  n_trials: 10 # Number of trials for choosing the optimal combinations of parameters, default=10
+  path: results/phiNODE_best_model.pth
+  para_path: results/phiNODE_best_params.yaml
