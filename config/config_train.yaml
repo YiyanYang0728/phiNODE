@@ -1,0 +1,11 @@
+data:
+  train_X: data/Phage_train.tsv
+  train_Y: data/Bact_arc_train.tsv
+  val_X: data/Phage_val.tsv
+  val_Y: data/Bact_arc_val.tsv
+model:
+  batch_size: 512
+  patience: 20
+  num_epochs: 50000
+  path: results/mlp_node_best_model.pth
+  para_path: results/mlp_node_best_params.yaml
