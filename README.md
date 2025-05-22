@@ -30,27 +30,11 @@ cd phiNODE
 
 ## Usage
 ### Step 1. Prepare data
-All parameters are provided in a config file:
-"""
-data:
-  train_X: data/Phage_train.tsv
-  train_Y: data/Bact_arc_train.tsv
-  val_X: data/Phage_val.tsv
-  val_Y: data/Bact_arc_val.tsv
-model:
-  batch_size: 512 # Batch size
-  patience: 20 # Number of epochs with no improvement after which training will be stopped
-  num_epochs: 50000 # Maximal epochs for training
-  n_trials: 10 # Number of trials for choosing the optimal combinations of parameters, default=10
-  path: results/phiNODE_best_model.pth
-  para_path: results/phiNODE_best_params.yaml
-
-"""
 ```
 python split_data.py raw_data/xxx.tsv raw_data/yyy.tsv # [TBA]
 ```
-
 ### Step 2. Train model
+All input, output files and model parameters are provided in a config file: config_train.yaml
 ```
 # copy and modify config_train.yaml
 cp config/config_train.yaml my_config_train.yaml 
@@ -97,7 +81,7 @@ scripts/infer_interactions.2.sh ${N_train} ${phage_ct} ${prok_ct} ${res_dir}
 The intermediate files are in `perturb/`.
 The predicted interactions are in `results/predicted_interactions.tsv`.
 
-### Step 5. Extract latent representations
+### Step 5. (Optional) Extract latent representations
 ```
 outdim=`cat data/Bact_arc_feature_names.txt |wc -l`
 awk '{print "  "$0}' results/phiNODE_best_params.yaml | cat config/config_repr.train.yaml - > my_config_repr.train.yaml
