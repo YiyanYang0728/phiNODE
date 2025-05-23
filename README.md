@@ -70,7 +70,7 @@ python model/train.py -c my_config_train.yaml
 
 ### 3. Evaluation
 
-Generate Test Predictions
+Generate predictions on test data
 
 ```bash
 # Prepare test config by merging best parameters
@@ -87,7 +87,8 @@ scripts/summarize.sh \
     &> results/phiNODE_predict_test.ft.metrics
 ```
 
-> **Tip:** Repeat the above steps for validation and training sets by using `config_test.val.yaml` / `config_test.train.yaml` and corresponding prediction directories.
+> **Tip:** Repeat the above steps for validation and training sets by using `config_test.val.yaml` and `config_test.train.yaml`, respectively.
+
 ```bash
 awk '{print "  "$0}' results/phiNODE_best_params.yaml \
     | cat config/config_val.yaml - \
