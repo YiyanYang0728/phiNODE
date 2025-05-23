@@ -10,8 +10,8 @@
 
 ## Installation
 To install phiNODE, follow these steps:
-1. Install the required dependencies:
-Note: Be sure to create the environment using A-series and V-series GPUs. Other GPUs are not suitable.
+1. Install the required dependencies:  
+Note: Be sure to create the environment using A-series and V-series GPUs. Other GPUs are not suitable.  
 If you want to install using CPUs, please remove the cuda related packages.
 
 ```
