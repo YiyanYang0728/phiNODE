@@ -2,7 +2,7 @@
 
 ## Overview
 
-**phiNODE** is a deep-learning framework designed to predict phage-host interactions and classify diseases using latent representations from trained model. 
+**phiNODE** is a deep-learning framework designed to predict phage-host interactions and classify sample status using latent representations from trained model. 
 
 ## Table of Contents
 
