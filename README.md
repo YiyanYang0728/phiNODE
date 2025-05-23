@@ -29,7 +29,7 @@ cd phiNODE
 
 ## Usage
 ### Step 1. Prepare data
-- The input files for `scripts/split_data.py` are 1) Prokaryotic profile, 2) Phage profile, and 3) output directory
+- The input files for `scripts/split_data.py` are 1) prokaryotic profile, 2) phage profile, and 3) output directory
 ```
 python scripts/split_data.py raw_data/Bact_arc_profile.tsv raw_data/Phage_profile.tsv data
 ```
