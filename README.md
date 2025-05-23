@@ -1,129 +1,162 @@
-# phiNODE: Advancing the Discovery of Phage-Host Interactions and Disease Classification from Metagenomic Profiles Using Deep Learning
+# phiNODE: Phage-Host Interaction and Disease Classification from Metagenomic Profiles
+
+## Overview
+
+**phiNODE** is a deep-learning framework designed to predict phage-host interactions and classify diseases using latent representations from trained model. 
 
 ## Table of Contents
-- [Installation](#installation)
-- [Usage](#usage)
-- [Features](#features)
-- [Dependencies](#dependencies)
-- [License](#license)
-- [Citation](#citation)
+
+* [Installation](#installation)
+* [Usage](#usage)
+
+  * [1. Data Preparation](#1-data-preparation)
+  * [2. Model Training](#2-model-training)
+  * [3. Evaluation](#3-evaluation)
+  * [4. Interaction Inference](#4-interaction-inference)
+  * [5. Latent Representation Extraction (Optional)](#5-latent-representation-extraction-optional)
+* [Dependencies](#dependencies)
+* [License](#license)
+* [Citation](#citation)
 
 ## Installation
-To install phiNODE, follow these steps:
-1. Install the required dependencies:  
 
-Note: Please create the environment with NVIDIA A-series and V-series GPUs only; other GPU types are not supported.  
-If you want to install using CPUs, please remove the cuda related packages from `environment.yml`.
-```
-conda env create --file environment.yml
-# or if you have mamba installed
-mamba env create --file environment.yml
-```
+1. **Create a Conda Environment**
 
-2. Clone the repository:
-```
-git clone git@github.com:YiyanYang0728/phiNODE.git
-```
-3. Change into the directory:
-```
-cd phiNODE
-```
+   ```bash
+   conda env create --file environment.yml
+   # or, with mamba:
+   mamba env create --file environment.yml
+   ```
+
+   > **Note:** The default environment is configured for NVIDIA A- and V-series GPUs. To run on CPU-only systems, remove CUDA-related packages from `environment.yml` before creating the environment.
+
+2. **Clone the Repository**
+
+   ```bash
+   git clone git@github.com:YiyanYang0728/phiNODE.git
+   cd phiNODE
+   ```
 
 ## Usage
-### Step 1. Prepare data
-- The input files for `scripts/split_data.py` are 1) prokaryotic profile, 2) phage profile, and 3) output directory
-```
-python scripts/split_data.py raw_data/Bact_arc_profile.tsv raw_data/Phage_profile.tsv data
+
+### 1. Data Preparation
+
+Prepare three input files for `scripts/split_data.py`: the prokaryotic abundance profile, the phage abundance profile, and an output directory.
+
+```bash
+python scripts/split_data.py \
+    raw_data/Bact_arc_profile.tsv \
+    raw_data/Phage_profile.tsv \
+    data/
 ```
 
-### Step 2. Train model
-- All input, output files and model parameters should be provided in a config file.
-```
-# copy and modify config_train.yaml
+### 2. Model Training
+
+Configure training parameters and file paths in a YAML file.
+
+```bash
+# Copy the template and customize
 cp config/config_train.yaml my_config_train.yaml
-# run training script
+
+# Run training
 python model/train.py -c my_config_train.yaml
 ```
-The best model and parameters are in `results/phiNODE_best_model.pth` and `results/phiNODE_best_params.yaml`.
-The historical models and training log file are in `checkpoints/`.
 
-### Step 3. Test and validate the model
-- Prepare the config file for test and validation data
-```
-# copy and paste the best parameters to config file: config_test.yaml
-awk '{print "  "$0}' results/phiNODE_best_params.yaml | cat config/config_test.yaml - > my_config_test.yaml
-# run testing script
+* **Outputs:**
+
+  * Best model: `results/phiNODE_best_model.pth`
+  * Best parameters: `results/phiNODE_best_params.yaml`
+  * Checkpoints and logs: `checkpoints/`
+
+### 3. Evaluation
+
+#### a. Generate Test Predictions
+
+```bash
+# Prepare test config by merging best parameters
+awk '{print "  "$0}' results/phiNODE_best_params.yaml \
+    | cat config/config_test.yaml - \
+    > my_config_test.yaml
+
+# Run testing
 python model/test.py -c my_config_test.yaml
 ```
 
-- Similar steps for validation and training data, uncomment to run the command lines
-```
-# awk '{print "  "$0}' results/phiNODE_best_params.yaml | cat config/config_test.val.yaml - > my_config_test.val.yaml
-# python model/test.py -c my_config_test.val.yaml
-# awk '{print "  "$0}' results/phiNODE_best_params.yaml | cat config/config_test.train.yaml - > my_config_test.train.yaml
-# python model/test.py -c my_config_test.train.yaml
+#### b. Summarize Metrics
+
+```bash
+scripts/summarize.sh \
+    results/phiNODE_predict_test \
+    &> results/phiNODE_predict_test.ft.metrics
 ```
 
-- To summarize results
-```
-scripts/summarize.sh results/phiNODE_predict_test &> results/phiNODE_predict_test.ft.metrics
-```
-- Similar steps for validation and training data, uncomment to run the command lines
-```
-# scripts/summarize.sh results/phiNODE_predict_val &> results/phiNODE_predict_val.ft.metrics
-# scripts/summarize.sh results/phiNODE_predict_train &> results/phiNODE_predict_train.ft.metrics
-```
+> **Tip:** Repeat the above steps for validation and training sets by using `config_test.val.yaml` / `config_test.train.yaml` and corresponding prediction directories.
 
-### Step 4. Predict interactions
-- Get the host sensitivity values for each phage feature
-```
-# To infer interactions from training samples, make sure you have prepared results/phiNODE_predict_train_pred.tsv by running: python model/test.py -c config_test.train.yaml
-awk '{print NR-1}' data/Phage_feature_names.txt | parallel scripts/infer_interactions.1.sh {}
-```
+### 4. Interaction Inference
 
-- Summarize and organize the results
-```
-N_train=`cat data/train_samples.txt|wc -l`
-phage_ct=`cat data/Phage_feature_names.txt |wc -l`
-prok_ct=`cat data/Bact_arc_feature_names.txt |wc -l`
+Infer host sensitivity for each phage feature and compile interaction tables.
+
+```bash
+# Ensure predictions exist: results/phiNODE_predict_train_pred.tsv
+awk '{print NR-1}' data/Phage_feature_names.txt \
+    | parallel scripts/infer_interactions.1.sh {}
+
+# Summarize interactions
+N_train=$(wc -l < data/train_samples.txt)
+phage_ct=$(wc -l < data/Phage_feature_names.txt)
+prok_ct=$(wc -l < data/Bact_arc_feature_names.txt)
 res_dir=results
-scripts/infer_interactions.2.sh ${N_train} ${phage_ct} ${prok_ct} ${res_dir}
+scripts/infer_interactions.2.sh $N_train $phage_ct $prok_ct $res_dir
 ```
-The intermediate files are in `perturb/`.
-The predicted interactions are in `results/predicted_interactions.tsv`.
 
-### Step 5. (Optional) Extract latent representations
-```
-outdim=`cat data/Bact_arc_feature_names.txt |wc -l`
-awk '{print "  "$0}' results/phiNODE_best_params.yaml | cat config/config_repr.train.yaml - > my_config_repr.train.yaml
-sed -i "s|#OUTDIM#|${outdim}|g" my_config_repr.train.yaml
+* **Output:**
+
+  * Intermediate files: `perturb/`
+  * Final interactions: `results/predicted_interactions.tsv`
+
+### 5. Latent Representation Extraction (Optional)
+
+Extract sample embeddings from the trained model.
+
+```bash
+# Determine output dimension
+outdim=$(wc -l < data/Bact_arc_feature_names.txt)
+
+# Prepare representation config
+awk '{print "  "$0}' results/phiNODE_best_params.yaml \
+    | cat config/config_repr.train.yaml - \
+    > my_config_repr.train.yaml
+sed -i "s|#OUTDIM#|$outdim|g" my_config_repr.train.yaml
+
+# Extract representations for training data
 python model/extract_repr.py -c my_config_repr.train.yaml
 ```
 
-- If you need the latent representations for all samples, do similar steps for validation and training data
-```
-awk '{print "  "$0}' results/phiNODE_best_params.yaml | cat config/config_repr.val.yaml - > my_config_repr.val.yaml
-sed -i "s|#OUTDIM#|${outdim}|g" my_config_repr.val.yaml
-python model/extract_repr.py -c my_config_repr.val.yaml
+> **Tip:** Apply the same process for validation and test sets by using `config_repr.val.yaml` and `config_repr.test.yaml`. Merge outputs:
 
-awk '{print "  "$0}' results/phiNODE_best_params.yaml | cat config/config_repr.test.yaml - > my_config_repr.test.yaml
-sed -i "s|#OUTDIM#|${outdim}|g" my_config_repr.test.yaml
-python model/extract_repr.py -c my_config_repr.test.yaml
-```
+```bash
+cat results/phiNODE_train_repr1.tsv \
+    results/phiNODE_val_repr1.tsv \
+    results/phiNODE_test_repr1.tsv \
+    > results/merged_repr1.tsv
 
-- Merge all representations
-```
-cat results/phiNODE_train_repr1.tsv results/phiNODE_val_repr1.tsv results/phiNODE_test_repr1.tsv > results/merged_repr1.tsv
-cat results/phiNODE_train_repr2.tsv results/phiNODE_val_repr2.tsv results/phiNODE_test_repr2.tsv > results/merged_repr2.tsv
+cat results/phiNODE_train_repr2.tsv \
+    results/phiNODE_val_repr2.tsv \
+    results/phiNODE_test_repr2.tsv \
+    > results/merged_repr2.tsv
 ```
 
 ## Dependencies
-phiNODE requires the following Python libraries:
-- [Pytorch](https://github.com/pytorch/pytorch)
-- [torchdiffeq](https://github.com/rtqichen/torchdiffeq)
+
+* [PyTorch](https://github.com/pytorch/pytorch)
+* [torchdiffeq](https://github.com/rtqichen/torchdiffeq)
 
 ## License
-phiNODE is released under the [MIT License](./LICENSE).
+
+This project is released under the [MIT License](./LICENSE).
 
 ## Citation
-If you use phiNODE in your research, please cite it as follows: TBA
+
+Please cite phiNODE as follows:
+
+> TBA
