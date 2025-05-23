@@ -20,7 +20,7 @@
 
 ## Installation
 
-1. **Create a Conda Environment**
+**Create a Conda Environment**
 
    ```bash
    conda env create --file environment.yml
@@ -30,7 +30,7 @@
 
    > **Attetion:** The default environment is configured for NVIDIA A- and V-series GPUs. To run on CPU-only systems, remove CUDA-related packages from `environment.yml` before creating the environment.
 
-2. **Clone the Repository**
+**Clone the Repository**
 
    ```bash
    git clone git@github.com:YiyanYang0728/phiNODE.git
