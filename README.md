@@ -46,6 +46,7 @@ The best model and parameters are in `results/phiNODE_best_model.pth` and `resul
 The historical models and training log file are in `checkpoints/`.
 
 ### Step 3. Test and validate the model
+- Prepare the config file for test and validation data
 ```
 # copy and paste the best parameters to config file: config_test.yaml
 awk '{print "  "$0}' results/phiNODE_best_params.yaml | cat config/config_test.yaml - > my_config_test.yaml
@@ -64,7 +65,9 @@ python model/test.py -c my_config_test.yaml
 - To summarize results
 ```
 scripts/summarize.sh results/phiNODE_predict_test &> results/phiNODE_predict_test.ft.metrics
-# Similar steps for validation and training data, uncomment to run the command lines
+```
+- Similar steps for validation and training data, uncomment to run the command lines
+```
 # scripts/summarize.sh results/phiNODE_predict_val &> results/phiNODE_predict_val.ft.metrics
 # scripts/summarize.sh results/phiNODE_predict_train &> results/phiNODE_predict_train.ft.metrics
 ```
@@ -95,7 +98,7 @@ sed -i "s|#OUTDIM#|${outdim}|g" my_config_repr.train.yaml
 python model/extract_repr.py -c my_config_repr.train.yaml
 ```
 
-- Similar steps for validation and training data, uncomment to run the command lines
+- If you need the latent representations for all samples, do similar steps for validation and training data
 ```
 awk '{print "  "$0}' results/phiNODE_best_params.yaml | cat config/config_repr.val.yaml - > my_config_repr.val.yaml
 sed -i "s|#OUTDIM#|${outdim}|g" my_config_repr.val.yaml
@@ -106,7 +109,7 @@ sed -i "s|#OUTDIM#|${outdim}|g" my_config_repr.test.yaml
 python model/extract_repr.py -c my_config_repr.test.yaml
 ```
 
-- If you need the latent representations for all samples
+- Merge all representations
 ```
 cat results/phiNODE_train_repr1.tsv results/phiNODE_val_repr1.tsv results/phiNODE_test_repr1.tsv > results/merged_repr1.tsv
 cat results/phiNODE_train_repr2.tsv results/phiNODE_val_repr2.tsv results/phiNODE_test_repr2.tsv > results/merged_repr2.tsv
@@ -121,5 +124,4 @@ phiNODE requires the following Python libraries:
 phiNODE is released under the [MIT License](./LICENSE).
 
 ## Citation
-If you use phiNODE in your research, please cite it as follows:
-TBA
+If you use phiNODE in your research, please cite it as follows: TBA
