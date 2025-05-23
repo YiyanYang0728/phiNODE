@@ -1,4 +1,4 @@
-# phiNODE: Phage-Host Interaction and Disease Classification from Metagenomic Profiles
+# phiNODE: Advancing the Discovery of Phage-Host Interactions and Disease Classification from Metagenomic Profiles Using Deep Learning
 
 ## Overview
 
