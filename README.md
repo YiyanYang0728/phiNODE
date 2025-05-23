@@ -28,7 +28,7 @@
    mamba env create --file environment.yml
    ```
 
-   > **Note:** The default environment is configured for NVIDIA A- and V-series GPUs. To run on CPU-only systems, remove CUDA-related packages from `environment.yml` before creating the environment.
+   > **Attetion:** The default environment is configured for NVIDIA A- and V-series GPUs. To run on CPU-only systems, remove CUDA-related packages from `environment.yml` before creating the environment.
 
 2. **Clone the Repository**
 
@@ -41,7 +41,7 @@
 
 ### 1. Data Preparation
 
-Prepare three input files for `scripts/split_data.py`: the prokaryotic abundance profile, the phage abundance profile, and an output directory.
+Prepare three inputs for `scripts/split_data.py`: the prokaryotic abundance profile, the phage abundance profile, and an output directory.
 
 ```bash
 python scripts/split_data.py \
@@ -91,6 +91,23 @@ scripts/summarize.sh \
 ```
 
 > **Tip:** Repeat the above steps for validation and training sets by using `config_test.val.yaml` / `config_test.train.yaml` and corresponding prediction directories.
+```bash
+awk '{print "  "$0}' results/phiNODE_best_params.yaml \
+    | cat config/config_val.yaml - \
+    > my_config_val.yaml
+python model/test.py -c my_config_val.yaml
+scripts/summarize.sh \
+    results/phiNODE_predict_val \
+    &> results/phiNODE_predict_val.ft.metrics
+
+awk '{print "  "$0}' results/phiNODE_best_params.yaml \
+    | cat config/config_train.yaml - \
+    > my_config_train.yaml
+python model/test.py -c my_config_train.yaml
+scripts/summarize.sh \
+    results/phiNODE_predict_train \
+    &> results/phiNODE_predict_train.ft.metrics
+```
 
 ### 4. Interaction Inference
 
@@ -132,7 +149,9 @@ sed -i "s|#OUTDIM#|$outdim|g" my_config_repr.train.yaml
 python model/extract_repr.py -c my_config_repr.train.yaml
 ```
 
-> **Tip:** Apply the same process for validation and test sets by using `config_repr.val.yaml` and `config_repr.test.yaml`. Merge outputs:
+> **Tip:** Apply the same process for validation and test sets by using `config_repr.val.yaml` and `config_repr.test.yaml`. 
+
+Merge representations.
 
 ```bash
 cat results/phiNODE_train_repr1.tsv \
