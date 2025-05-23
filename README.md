@@ -49,6 +49,12 @@ python scripts/split_data.py \
     raw_data/Phage_profile.tsv \
     data/
 ```
+* **Outputs:**
+
+  * Raw split data: `data/<Phage/Bact_arc>_<train/validation/test>_no_clr.tsv`
+  * Split data with CLR (centered log-ratio) transformation: `data/<Phage/Bact_arc>_<train/validation/test>.tsv`
+  * Feature names: `data/<Phage/Bact_arc>_feature_names.txt`
+  * Sample names: `data/<train/validation/test>_samples.txt`
 
 ### 2. Model Training
 
