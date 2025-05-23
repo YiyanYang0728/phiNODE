@@ -11,14 +11,15 @@
 ## Installation
 To install phiNODE, follow these steps:
 1. Install the required dependencies:  
-Note: Be sure to create the environment using A-series and V-series GPUs. Other GPUs are not suitable.  
-If you want to install using CPUs, please remove the cuda related packages.
 
+Note: Be sure to create the environment using A-series and V-series GPUs. Other GPUs are not suitable.  
+If you want to install using CPUs, please remove the cuda related packages from `environment.yml`.
 ```
 conda env create --file environment.yml
 # or if you have mamba installed
 mamba env create --file environment.yml
 ```
+
 2. Clone the repository:
 ```
 git clone git@github.com:YiyanYang0728/phiNODE.git
